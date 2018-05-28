@@ -19,6 +19,6 @@ public class Main {
             frame.setVisible(true);
             System.out.println(Thread.currentThread().getName() + " invoker");
         });
-        System.out.println(Thread.currentThread().getName() + " main");
+        System.out.println(Thread.currentThread().getName() + "julia main");
     }
 }
