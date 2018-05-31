@@ -154,7 +154,7 @@ public class MainFrame extends JFrame {
                             SerialPort.DATABITS_8,
                             SerialPort.STOPBITS_1,
                             SerialPort.PARITY_NONE);
-                    chosenPort.addEventListener(new Listener());
+                    chosenPort.addEventListener(new PortListener());
                 } catch (SerialPortException exc) {
                     exc.printStackTrace();
                 }
@@ -183,7 +183,7 @@ public class MainFrame extends JFrame {
         }
     }
 
-    private class Listener implements SerialPortEventListener {
+    private class PortListener implements SerialPortEventListener {
         @Override
         public void serialEvent(SerialPortEvent serialPortEvent) {
             if (serialPortEvent.getEventValue() > 0) {
