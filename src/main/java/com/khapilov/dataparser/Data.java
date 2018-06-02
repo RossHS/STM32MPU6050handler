@@ -82,6 +82,13 @@ public class Data {
         return calculateTemperature(data[8], data[9]);
     }
 
+    /**
+     * Returns a string representation of the object. In general, the
+     * {@code toString} method returns a string that
+     * "textually represents" this object.
+     *
+     * @return a string representation of the object.
+     */
     @Override
     public String toString() {
         StringBuilder str = new StringBuilder();

@@ -1,15 +1,16 @@
 package com.khapilov.gui;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 
 /**
- * Menu item for record data from COM port.
+ * Menu item for Gyro Mouse feature.
  *
  * @author Ross Khapilov
- * @version 1.0 23.05.2018
+ * @version 1.0 31.05.2018
  */
-class RecordDataToTxt extends AbstractAction {
+class GyroMouse extends AbstractAction {
     private JDialog dialog;
     private final MainFrame frame;
 
@@ -18,19 +19,25 @@ class RecordDataToTxt extends AbstractAction {
      * @param image the Icon for the menu item.
      * @param frame parent Frame.
      */
-    RecordDataToTxt(String name, ImageIcon image, MainFrame frame) {
+    GyroMouse(String name, ImageIcon image, MainFrame frame) {
         super(name);
         putValue(Action.SMALL_ICON, image);
-        putValue(Action.SHORT_DESCRIPTION, "Create a data files");
+        putValue(Action.SHORT_DESCRIPTION, "Use a gyro as a mouse");
         this.frame = frame;
     }
 
     /**
-     * After click at {@code Record}, if we don`t have {@code RecordDialog} object, create one, else set visible.
+     * After click at {@code Gyro Mouse}, if we don`t have {@code MouseDialog} object, create one, else set visible.
      */
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (dialog == null) dialog = new RecordDialog(frame);
+        if (dialog == null) {
+            try {
+                dialog = new MouseDialog(frame);
+            } catch (AWTException e1) {
+                e1.printStackTrace();
+            }
+        }
         if (!dialog.isVisible()) dialog.setVisible(true);
     }
 }

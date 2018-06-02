@@ -6,6 +6,7 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
+ * Entry point.
  * @author Ross Khapilov
  * @version 1.0 19.05.2018
  */

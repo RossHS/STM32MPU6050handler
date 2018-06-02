@@ -18,6 +18,8 @@ import java.util.Date;
 import java.util.Queue;
 
 /**
+ * Dialog for record data.
+ *
  * @author Ross Khapilov
  * @version 1.0 24.05.2018
  */
@@ -36,17 +38,19 @@ class RecordDialog extends JDialog {
     private final JCheckBox angularVelocityBox;
     private final JCheckBox angleBox;
 
-    RecordDialog(JFrame owner) {
+    /**
+     * @param owner parent frame reference.
+     */
+    RecordDialog(MainFrame owner) {
         super(owner, "Record data dialog", true);
-        parent = (MainFrame) owner;
-        //************************************************//
-        //Нижняя панель состояния
+        parent = owner;
+        //*************Bottom progress panel**********************//
         progressBar = new JProgressBar(0, 10);
         progressBar.setStringPainted(true);
         progressBar.setForeground(new Color(57, 180, 145));
         add(progressBar, BorderLayout.SOUTH);
-        //************************************************//
-        //Вверхняя панель
+
+        //*******Top input time and record button panel**********//
         JPanel topPanel = new JPanel();
 
         JLabel timeLabel = new JLabel("Seconds: ");
@@ -69,8 +73,8 @@ class RecordDialog extends JDialog {
         topPanel.add(timeField);
         topPanel.add(recordButton);
         add(topPanel, BorderLayout.NORTH);
-        //****************************************************//
-        //Средняя панель с настройками
+
+        //**************Middle checkbox panel*******************//
         JPanel middlePanel = new JPanel();
 
         binaryBox = new JCheckBox("Binary", true);
@@ -96,6 +100,9 @@ class RecordDialog extends JDialog {
         pack();
     }
 
+    /**
+     * @param b set enable all components.
+     */
     private void setEnabledComponents(boolean b) {
         recordButton.setEnabled(b);
         binaryBox.setEnabled(b);
@@ -105,6 +112,9 @@ class RecordDialog extends JDialog {
         timeField.setEnabled(b);
     }
 
+    /**
+     * Action listener for record button witch prepare this frame and start new thread.
+     */
     class RecordButtonEvent implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -124,6 +134,9 @@ class RecordDialog extends JDialog {
         }
     }
 
+    /**
+     * Inner class which work in new thread and write different data in txt files.
+     */
     class RecordThread implements Runnable {
         private int currentTime = 0;
         private int targetTime = second;
@@ -161,12 +174,19 @@ class RecordDialog extends JDialog {
             if (angleBox.isSelected()) {
                 writeData(recordDir, "Angle.txt", Buffer.getAngleDeque());
             }
-            Buffer.cleanOutBuffer();
+            Buffer.clearOutBuffer();
             JOptionPane.showMessageDialog(RecordDialog.this, "Data successfully recorded!",
                     "done", JOptionPane.INFORMATION_MESSAGE);
             setEnabledComponents(true);
         }
 
+        /**
+         * Method to help write data to a file.
+         *
+         * @param recordDir folder for recording.
+         * @param fileName  name of the data file.
+         * @param queue     the queue from which we take the data.
+         */
         private void writeData(File recordDir, String fileName, Queue<String> queue) {
             try (BufferedWriter writer = new BufferedWriter(
                     new FileWriter(new File(recordDir, fileName), true))) {

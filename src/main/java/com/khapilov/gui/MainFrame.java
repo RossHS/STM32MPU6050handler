@@ -3,6 +3,7 @@ package com.khapilov.gui;
 import com.khapilov.dataparser.AccelerationData;
 import com.khapilov.dataparser.AngleData;
 import com.khapilov.dataparser.AngularVelocityData;
+import com.khapilov.dataparser.Data;
 import jssc.*;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -18,11 +19,11 @@ import java.awt.event.ActionListener;
 import java.util.Objects;
 
 /**
+ * Main frame of the whole interface.
+ *
  * @author Ross Khapilov
- * @version 1.0 20.05.2018
+ * @version 1.1 20.05.2018
  */
-// TODO: 21.05.2018 основная проблема с циклом while(dataIsReady) который рисует график.
-// Именно графики являются причиной утечки памяти
 public class MainFrame extends JFrame {
     private SerialPort chosenPort;
 
@@ -34,7 +35,7 @@ public class MainFrame extends JFrame {
     private final JButton connectButton;
 
     private final JComboBox<String> portList;
-    private final  JTextArea textArea;
+    private final JTextArea textArea;
 
     private final XYSeries[] accelerationSeries = new XYSeries[3];
     private final XYSeries[] angularVelocitySeries = new XYSeries[3];
@@ -43,9 +44,9 @@ public class MainFrame extends JFrame {
     private int xAxies = 0;
 
     public MainFrame() {
-        //***********************************************//
-        //панель с кнопками
+        //*************Top panel with buttons********************//
         JPanel selectPanel = new JPanel();
+
         portList = new JComboBox<>();
         String[] portNames = SerialPortList.getPortNames();
         for (String s : portNames)
@@ -67,15 +68,19 @@ public class MainFrame extends JFrame {
         selectPanel.add(portList);
         selectPanel.add(connectButton);
         selectPanel.add(cleanChartButton);
-        //***********************************************//
-        //панель с цифрами
+        add(selectPanel, BorderLayout.NORTH);
+
+        //******West panel with main information from MPU6050******//
         JPanel dataPanel = new JPanel();
+
         textArea = new JTextArea(12, 12);
         textArea.setFont(new Font(null, Font.BOLD, 18));
         textArea.setEditable(false);
+
         dataPanel.add(textArea);
-        //*********************************************//
-        //графики
+        add(dataPanel, BorderLayout.WEST);
+
+        //**************Middle panel with charts******************//
         JPanel chartPanel = new JPanel(new GridLayout(0, 1));
 
         XYSeriesCollection accelerationDataset = makeDataset(accelerationSeries, "Ax", "Ay", "Az");
@@ -99,12 +104,9 @@ public class MainFrame extends JFrame {
         chartPanel.add(new ChartPanel(accelerationChart));
         chartPanel.add(new ChartPanel(angularVelocityChart));
         chartPanel.add(new ChartPanel(angleChart));
-
-        add(selectPanel, BorderLayout.NORTH);
-        add(dataPanel, BorderLayout.WEST);
         add(chartPanel, BorderLayout.CENTER);
-        //*****************************************************//
-        //Меню
+
+        //***********************Menu************************//
         JMenu fileMenu = new JMenu("File");
         JMenuItem record = fileMenu.add(new RecordDataToTxt("Record",
                 new ImageIcon(IconHelper.getImage("icon/Note.png")), this));
@@ -114,9 +116,20 @@ public class MainFrame extends JFrame {
                 new ImageIcon(IconHelper.getImage("icon/Magnifier.png"))));
         scan.setAccelerator(KeyStroke.getKeyStroke("ctrl S"));
 
+
+        JMenu featuresMenu = new JMenu("Features");
+        JMenuItem gyroMouse = featuresMenu.add(new GyroMouse("Gyro Mouse",
+                new ImageIcon(IconHelper.getImage("icon/Mouse.png")), this));
+        gyroMouse.setAccelerator(KeyStroke.getKeyStroke("ctrl M"));
+
+        JMenuItem figure3D = featuresMenu.add(new Figure3D("3D figure",
+                new ImageIcon(IconHelper.getImage("icon/3D.png")), this));
+        figure3D.setAccelerator(KeyStroke.getKeyStroke("ctrl D"));
+
         JMenuBar menuBar = new JMenuBar();
         setJMenuBar(menuBar);
         menuBar.add(fileMenu);
+        menuBar.add(featuresMenu);
         //****************************************************//
         try {
             UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
@@ -127,6 +140,13 @@ public class MainFrame extends JFrame {
         pack();
     }
 
+    /**
+     * Private helper method for build dataset of charts.
+     *
+     * @param series charts.
+     * @param key    names of the charts.
+     * @return dataset.
+     */
     private XYSeriesCollection makeDataset(XYSeries[] series, String... key) {
         XYSeriesCollection dataset = new XYSeriesCollection();
         for (int i = 0; i < series.length; i++) {
@@ -137,10 +157,23 @@ public class MainFrame extends JFrame {
         return dataset;
     }
 
+    /**
+     * @return Serial port object.
+     */
     public SerialPort getSerialPort() {
         return chosenPort;
     }
 
+    /**
+     * @return all available data wrapped into array.
+     */
+    public Data[] getDataArray() {
+        return new Data[]{accelerationData, angularVelocityData, angleData};
+    }
+
+    /**
+     * Action listener which open serial port and start new thread with charts.
+     */
     private class ConnectButtonEvent implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -183,6 +216,9 @@ public class MainFrame extends JFrame {
         }
     }
 
+    /**
+     * Event listener that distributes data from a MPU6050 to different objects.
+     */
     private class PortListener implements SerialPortEventListener {
         @Override
         public void serialEvent(SerialPortEvent serialPortEvent) {
@@ -215,6 +251,10 @@ public class MainFrame extends JFrame {
         }
     }
 
+    /**
+     * New thread that updates the graphics every 5 milliseconds.
+     */
+    // TODO: 02.06.2018 JFreechart is a memory leak problem.
     private class GUIupdater implements Runnable {
         @Override
         public void run() {
