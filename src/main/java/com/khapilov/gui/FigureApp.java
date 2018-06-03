@@ -52,7 +52,7 @@ class FigureApp extends JFrame {
 
         Thread print3D = new Thread(() -> {
             try {
-                while (isVisible()) {
+                while (true) {
                     Thread.sleep(3);
                     rxBox.setAngle(-angleData.getPitch());
                     ryBox.setAngle(-angleData.getYaw());
