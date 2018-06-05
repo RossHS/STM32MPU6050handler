@@ -14,7 +14,7 @@ import java.awt.event.InputEvent;
  * Dialog for Gyro mouse.
  *
  * @author Ross Khapilov
- * @version 1.0 31.05.2018
+ * @version 1.01 05.06.2018
  */
 class MouseDialog extends JDialog {
 
@@ -26,13 +26,16 @@ class MouseDialog extends JDialog {
     private final AngularVelocityData angularVelocityData;
     private final AngleData angleData;
 
-    private Robot mouse;
-    private Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    private double xScale = screenSize.getWidth() / 80;
-    private double yScale = screenSize.getHeight() / 80;
-
     private int wheelConst = 50;
     private int clickConst = 17;
+    private int xConst = 40;
+    private int yConst = 40;
+
+    private Robot mouse;
+    private Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    private double xScale = screenSize.getWidth() / (xConst * 2);
+    private double yScale = screenSize.getHeight() / (yConst * 2);
+
 
     /**
      * @param owner main frame reference.
@@ -48,31 +51,30 @@ class MouseDialog extends JDialog {
         //**************Top panel with sittings sliders***************//
         northPanel = new JPanel(new GridBagLayout());
 
-        // TODO: 01.06.2018 Доделать x
         JSlider sliderX = new JSlider();
-        addSlider(sliderX, "X", 20, 4);
-        sliderX.setValue(80);
-        sliderX.addChangeListener(e -> xScale = screenSize.getWidth() / sliderX.getValue());
-        sliderX.setEnabled(false);
+        addSlider(sliderX, "X", 10, 90, 20, 4);
+        sliderX.setValue(xConst);
+        sliderX.addChangeListener(e -> {
+            xConst = sliderX.getValue();
+            xScale = screenSize.getWidth() / (xConst * 2);
+        });
 
-        // TODO: 01.06.2018 Доделать y
         JSlider sliderY = new JSlider();
-        addSlider(sliderY, "Y", 20, 4);
-        sliderY.setValue(80);
-        sliderY.setEnabled(false);
+        addSlider(sliderY, "Y", 10, 90, 20, 4);
+        sliderY.setValue(yConst);
+        sliderY.addChangeListener(e -> {
+            yConst = sliderY.getValue();
+            yScale = screenSize.getHeight() / (yConst * 2);
+        });
 
 
         JSlider sliderScroll = new JSlider();
-        addSlider(sliderScroll, "Wheel", 10, 2);
-        sliderScroll.setMinimum(30);
-        sliderScroll.setMaximum(90);
+        addSlider(sliderScroll, "Wheel", 30, 90, 10, 2);
         sliderScroll.setValue(wheelConst);
         sliderScroll.addChangeListener(e -> wheelConst = sliderScroll.getValue());
 
         JSlider sliderClick = new JSlider();
-        addSlider(sliderClick, "Click", 5, 1);
-        sliderClick.setMinimum(10);
-        sliderClick.setMaximum(30);
+        addSlider(sliderClick, "Click", 10, 40, 5, 1);
         sliderClick.setValue(clickConst);
         sliderClick.addChangeListener(e -> clickConst = sliderClick.getValue());
 
@@ -126,8 +128,10 @@ class MouseDialog extends JDialog {
      * @param majorSpace  Major spaces between ticks.
      * @param minorSpace  Minor spaces between ticks.
      */
-    private void addSlider(JSlider s, String description, int majorSpace, int minorSpace) {
+    private void addSlider(JSlider s, String description, int minimum, int maximum, int majorSpace, int minorSpace) {
         s.addChangeListener(null);
+        s.setMinimum(minimum);
+        s.setMaximum(maximum);
         s.setMajorTickSpacing(majorSpace);
         s.setMinorTickSpacing(minorSpace);
         s.setPaintTicks(true);
@@ -151,15 +155,11 @@ class MouseDialog extends JDialog {
             try {
                 while (onAction) {
                     Thread.sleep(5);
-
-                    int x = (int) ((Math.abs(angleData.getYaw() - 180) - 140) * xScale);
-                    int y = (int) ((angleData.getPitch() + 180 - 140) * yScale);
+                    int x = (int) ((Math.abs(angleData.getYaw() - 180) - (180 - xConst)) * xScale);
+                    int y = (int) ((angleData.getPitch() + yConst) * yScale);
                     mouse.mouseMove(x, y);
-
-
                     if (angleData.getRoll() > wheelConst) mouse.mouseWheel(-1);
                     else if (angleData.getRoll() < -wheelConst) mouse.mouseWheel(1);
-
                     if (accelerationData.getAz() > clickConst) {
                         mouse.mousePress(InputEvent.BUTTON1_MASK);
                         mouse.mouseRelease(InputEvent.BUTTON1_MASK);
